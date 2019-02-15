@@ -49,6 +49,24 @@ impl RedisPool {
         };
         self.pool.run(f)
     }
+
+    /// Get a new dedicated connection that will not be managed by the pool.
+    /// An application may want a persistent connection
+    /// that will not be closed or repurposed by the pool.
+    ///
+    /// This method allows reusing the manager's configuration but otherwise
+    /// bypassing the pool
+    pub fn dedicated_connection(
+        &self,
+    ) -> impl Future<Item = Connection, Error = RedisError> + Send {
+        self.pool.dedicated_connection()
+            .map(|opt_con|
+                opt_con.expect("Couldn't get a dedicated Redis connection!"))
+    }
+    /// Returns information about the current state of the pool.
+    pub fn state(&self) -> bb8::State {
+        self.pool.state()
+    }
 }
 
 /// A `bb8::ManageConnection` for `redis::async::Connection`s.
